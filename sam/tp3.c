@@ -260,7 +260,7 @@ bool check_heap(int *heap, unsigned n)
 
 void pretty_print_heap(FILE *out, const int *v, unsigned n)
 {
-    int hight = round(log2(n));
+    int hight = log2(n) + 1;
     int space = ints_width(v, n) + 1;
     int weight = pow(2, hight) * space; 
     int nb_word = pow(2, 0);
@@ -270,16 +270,17 @@ void pretty_print_heap(FILE *out, const int *v, unsigned n)
     int end = n;
     for (int i = 0; i < hight || ind < end; i++)
     {
-        if (i < hight)
-        {
+        //if (i < hight)
+        //{
             nb_word = pow(2, i);
-            place = weight /  div;
+            place = weight / div;
             div *= 2;
-        }
+        //}
         for (int j = 0; j < nb_word && ind < end; j++)
         {
             if (!j)
             {
+
                 fprintf(out,"%*d", (place / 2) + 1, v[ind]);
             }
             else
@@ -308,15 +309,10 @@ int pop_heap(int *heap, unsigned *n)
 
 int main(void)
 {
-    int a[] = { 123, 0, 33, 42, 544, 165, -73, 228 };
-    unsigned asize = sizeof(a) / sizeof(*a);
-    make_heap(a, asize);
-    puts("init");
-    pretty_print_heap(stdout, a, asize);
-    for (unsigned i = 0; i < 5; ++i)
-    {
-     printf("pop_heap() == %d\n", pop_heap(a, &asize));
-     pretty_print_heap(stdout, a, asize);
-    }
+    int a[] = {123, 0, 33, 42, 544, 165, -73, 228 };
+unsigned asize = sizeof(a) / sizeof(*a);
+make_heap(a, asize);
+puts("Look Ma! I drew a tree!");
+pretty_print_heap(stdout, a, asize);
     return 0;
 }
