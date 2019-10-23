@@ -220,21 +220,23 @@ unsigned interpolation_search(int *tab, unsigned count, int val,
 }
 
 
-void heapify(int *tab, unsigned n, unsigned pos)
+void heapify(int *tab, unsigned pos, unsigned m)
 {
-    unsigned lar = pos;
     unsigned l = 2 * pos + 1;
     unsigned r = 2 * pos + 2;
-    if (l < n && tab[l] > tab[lar])
-        lar = l;
-    if (r < n && tab[r] > tab[lar])
-        lar = r;
-    if (lar != pos)
+    unsigned g;
+    if (l < m && tab[l] > tab[pos])
+        g = l;
+    else
+        g = pos;
+    if (r < m && tab[r] > tab[g])
+        g = r;
+    if (g != pos)
     {
         int tmp = tab[pos];
-        tab[pos] = tab[lar];
-        tab[lar] = tmp;
-        heapify(tab, n, lar);
+        tab[pos] = tab[g];
+        tab[g] = tmp;
+        heapify(tab, g, m);
     }
 }
 
@@ -243,7 +245,7 @@ void make_heap(int *tab, unsigned n)
     unsigned start = (n / 2) - 1;
     for (int i = start; i >= 0; i--)
     {
-        heapify(tab, n, i);
+        heapify(tab, i, n);
     }
 }
 
@@ -307,12 +309,98 @@ int pop_heap(int *heap, unsigned *n)
     return res;
 }
 
-int main(void)
+void heap_sort(int *tab, unsigned n)
 {
-    int a[] = {123, 0, 33, 42, 544, 165, -73, 228 };
-unsigned asize = sizeof(a) / sizeof(*a);
-make_heap(a, asize);
-puts("Look Ma! I drew a tree!");
-pretty_print_heap(stdout, a, asize);
-    return 0;
+    make_heap(tab, n);
+    for (unsigned i = n - 1; i >= 1; i--)
+    {
+        int tmp = tab[0];
+        tab[0] = tab[i];
+        tab[i] = tmp;
+        heapify(tab, 0, i);
+    }
+}
+
+void heapify_cmp(int *v, unsigned i, unsigned n, int (*cmp)(int a, int b))
+{
+    unsigned l = 2 * i + 1;
+    unsigned r = 2 * i + 2;
+    unsigned g;
+    if (l < n && cmp(v[l], v[i]) == 1)
+        g = l;
+    else
+        g = i;
+    if (r < n && cmp(v[r], v[g]) == 1)
+        g = r;
+    if (g != i)
+    {
+        int tmp = v[i];
+        v[i] = v[g];
+        v[g] = tmp;
+        heapify_cmp(v, g, n, cmp);
+    }
+}
+
+void make_heap_cmp(int *v, unsigned n, int (*cmp)(int a, int b))
+{
+    unsigned start = (n / 2) - 1;
+    for (int i = start; i >= 0; i--)
+    {
+        heapify_cmp(v, i, n, cmp);
+    }
+}
+
+bool check_heap_cmp(int *v, unsigned n, int (*cmp)(int a, int b))
+{
+    int end = (n / 2);
+    for (int i = 0; i < end; i++)
+    {
+        if (cmp(v[2 * i + 1], v[i]) == 1 || cmp(v[2 * i + 2], v[i]) == 1)
+            return false;
+    }
+    return true;
+}
+
+int pop_heap_cmp(int *heap, unsigned *n, int (*cmp)(int a, int b))
+{
+    if (*n <= 0)
+    {
+        return 0;
+    }
+    int res = heap[0];
+    (*n)--;
+    heap[0] = heap[*n];
+    heap[*n] = res;
+    make_heap_cmp(heap, *n, cmp); 
+    return res;
+}
+
+void heap_sort_cmp(int* tab, unsigned n, int (*cmp)(int a, int b))
+{
+    make_heap_cmp(tab, n, cmp);
+    for (unsigned i = n - 1; i >= 1; i--)
+    {
+        int tmp = tab[0];
+        tab[0] = tab[i];
+        tab[i] = tmp;
+        heapify_cmp(tab, i, 0, cmp);
+    }
+}
+
+int main()
+{
+  int a[] = {
+    1, 2, 3, 4, 5, 6, 13, -35, 129, -4, 123, -4555, 1341, 2432, 111, 0, 1230
+  };
+
+  unsigned asize = sizeof(a)/sizeof(*a);
+  puts("original");
+  print_int_array(stdout, a, asize);
+  puts("increasing");
+  heap_sort_cmp(a, asize, increasing);
+  print_int_array(stdout, a, asize);
+  puts("decreasing");
+  heap_sort_cmp(a, asize, decreasing);
+  print_int_array(stdout, a, asize);
+  return 0;
 }
