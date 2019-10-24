@@ -220,11 +220,11 @@ unsigned interpolation_search(int *tab, unsigned count, int val,
 }
 
 
-void heapify(int *tab, unsigned pos, unsigned m)
+void heapify(int *tab, int pos, unsigned m)
 {
     unsigned l = 2 * pos + 1;
     unsigned r = 2 * pos + 2;
-    unsigned g;
+    int g;
     if (l < m && tab[l] > tab[pos])
         g = l;
     else
@@ -383,24 +383,17 @@ void heap_sort_cmp(int* tab, unsigned n, int (*cmp)(int a, int b))
         int tmp = tab[0];
         tab[0] = tab[i];
         tab[i] = tmp;
-        heapify_cmp(tab, i, 0, cmp);
+        heapify_cmp(tab, 0, i, cmp);
     }
 }
 
 int main()
 {
-  int a[] = {
-    1, 2, 3, 4, 5, 6, 13, -35, 129, -4, 123, -4555, 1341, 2432, 111, 0, 1230
-  };
-
-  unsigned asize = sizeof(a)/sizeof(*a);
-  puts("original");
-  print_int_array(stdout, a, asize);
-  puts("increasing");
-  heap_sort_cmp(a, asize, increasing);
-  print_int_array(stdout, a, asize);
-  puts("decreasing");
-  heap_sort_cmp(a, asize, decreasing);
-  print_int_array(stdout, a, asize);
-  return 0;
+    int a[] = { 16, -2, 53, 45, -995, 666, 887,-148, 59, 10, 151, 412, -13 };
+    unsigned asize = sizeof(a) / sizeof(*a);
+    heap_sort_cmp(a, asize, decreasing);
+    puts("output:");
+    print_int_array(stdout, a, asize);
+    return 0;
 }
+
