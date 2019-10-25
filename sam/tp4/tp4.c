@@ -96,12 +96,12 @@ unsigned partition_cmp(int *tab, unsigned b, unsigned e, unsigned p,
         {
             i++;
         }
-        while (i != e && i != p &&  cmp(tab[i], x) >= 0);
+        while (cmp(tab[i], x) == -1);
         do
         {
             j--;
         }
-        while (j != 0 && j != p && cmp(tab[j], x) >= 0);
+        while (cmp(tab[j], x) == 1);
         if (j <= i)
             return i + (i == b);
         int tmp = tab[i];
@@ -166,12 +166,10 @@ void quick_sort_cmp(int *tab, unsigned count, unsigned (*pivot)(const int *tab, 
 }
 int main(void)
 {
-    int tab[10] = { 30, 8, 42, 9, 13, 5, 3, 23, 40, -3 };
-    puts("increasing");
-    quick_sort_cmp(tab, 10, pivot_rand, increasing);
-    print_int_array(stdout, tab, 10);
-    puts("decreasing");
-    quick_sort_cmp(tab, 10, pivot_median3, decreasing);
-    print_int_array(stdout, tab, 10);
-    return 0;
+    for (unsigned p = 0; p <= 10; p += 5)
+{
+  int tab[11] = { 2, 8, 42, 9, 13, 5, 3, 23, 40, -3, 55 };
+  printf("p = %u  =>  m = %u\n", p, partition_cmp(tab, 0, 11, p, increasing));
+  print_int_array(stdout, tab, 11);
+}
 }
