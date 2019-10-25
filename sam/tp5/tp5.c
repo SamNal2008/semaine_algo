@@ -1,3 +1,4 @@
+/*** submitted by Samy Nalbandian (samy.nalbandian) on 2019-10-24 16:45:57.550481+00:00 from 92.154.77.209 ***/
 #include <stddef.h>
 #include <math.h>
 #include <stdio.h>
@@ -6,6 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+
 unsigned int_width(int i)
 {
     float r = i;
@@ -96,12 +98,12 @@ unsigned partition_cmp(int *tab, unsigned b, unsigned e, unsigned p,
         {
             i++;
         }
-        while (i != e && i != p &&  cmp(tab[i], x) >= 0);
+        while (cmp(tab[i], x) == -1);
         do
         {
             j--;
         }
-        while (j != 0 && j != p && cmp(tab[j], x) >= 0);
+        while (cmp(tab[j], x) == 1);
         if (j <= i)
             return i + (i == b);
         int tmp = tab[i];
@@ -133,26 +135,18 @@ unsigned pivot_median3(const int *tab, unsigned l, unsigned r,
     int p1 = tab[l];
     int p2 = tab[r - 1];
     int p3 = tab[l + (r - l) / 2];
-    if (cmp(p1, p2) >= 0)
-    {
-        if (cmp(p1, p3) >= 0)
-        {
-            if (cmp(p2, p3) >= 0)
-                return r - 1;
-            else
-                return l + (r - l) / 2;
-        }
-        else
-        {
-            return l;
-        }
-    }
-    if (cmp(p2, p3) >= 0)
-    {
-        if (cmp(p1, p3) >= 0)
-            return l;
+    int p12 = cmp(p1,p2);
+    int p13 = cmp(p1,p3);
+    int p21 = cmp(p2,p1);
+    int p23 = cmp(p2, p3);
+    int p31 = cmp(p3,p1);
+    int p32 = cmp(p3,p2);
+    if ((p12 >= 0 && p23 >= 0) || (p32 >= 0 && p21 >= 0))
+        return r - 1;
+    if ((p13 >= 0 && p32 >= 0) || (p23 >= 0 && p31 >= 0))
         return l + (r - l) / 2;
-    }
+    if ((p21 >= 0 && p13 >= 0) || (p31 >= 0 && p12 >= 0))
+        return l;
 }
 
 void quick_sort_cmp(int *tab, unsigned count, unsigned (*pivot)(const int *tab, unsigned l, unsigned r, int (*cmp)(int a, int b)), int (*cmp)(int a, int b))
@@ -164,18 +158,15 @@ void quick_sort_cmp(int *tab, unsigned count, unsigned (*pivot)(const int *tab, 
         quick_sort_cmp(tab + p, count - p, pivot, cmp);
     }
 }
-
 void quick_sort_cmp_loop(int *tab, unsigned count, unsigned (*pivot)(const
 int *tab, unsigned l, unsigned r, int (*cmp)(int a, int b)),int (*cmp)(int a,
 int b))
 {
-    unsigned l = 0;
-    unsigned r = count;
-    while (r - l > 0)
+    while (count > 1)
     {
         unsigned p = partition_cmp(tab, 0, count, pivot(tab, 0, count,cmp), cmp);
-        quick_sort_cmp_loop(tab + l, r - l, pivot, cmp);
-        l = p;
+        quick_sort_cmp_loop(tab, p, pivot, cmp);
+        count = count - p;
     }
 }
 
@@ -189,26 +180,56 @@ int my_increasing(int a, int b)
     return a > b;
 }
 
-#define mycheck(fun, tab) \
+unsigned small_threshold = 10;
+
+void quick_sort_cmp_adapt(int *tab, unsigned count, unsigned (*pivot)(const int
+*tab, unsigned l, unsigned r, int (*cmp)(int a, int b)), int (*cmp)(int a, int
+b))
+{
+    unsigned p = 0;
+    while (count > 1)
+    {
+        p = partition_cmp(tab, 0, count, pivot(tab, 0, count, cmp), cmp);
+        if (p <= count - p)
+        {
+            quick_sort_cmp_adapt(tab, p, pivot, cmp);
+            tab = tab + p;
+            count -= p;
+        }
+        else
+        {
+            quick_sort_cmp_adapt(tab + p, count - p, pivot, cmp);
+            count = count - p;
+        }
+    }
+}
+
+#define mycheck(fun) \
 {                         \
-    cmp_count = 0;\
+    memcpy(tab2, tab1, tsize * sizeof(int));\
     clock_t before = clock();\
-    fun(tab, tsize, pivot_median3, my_increasing);\
+    fun(tab2, tsize, pivot_median3, my_increasing);\
     clock_t after = clock();\
-    printf(#fun " used %ju comparisons and %ju ticks \n",\
-    cmp_count, (uintmax_t) (after - before));\
+    printf(#fun " used  %ju ticks \n",\
+     (uintmax_t) (after - before));\
 }
 
 int main(void)
 {
     srand(0);
-    const unsigned tsize = 500000;
+    const unsigned tsize = 4000000;
     int *tab1 = malloc(tsize * sizeof(int));
     int *tab2 = malloc(tsize * sizeof(int));
     for (unsigned i = 0; i < tsize; ++i)
         tab2[i] = tab1[i] = rand(); // = i;
 
-    mycheck(quick_sort_cmp, tab1);
-    mycheck(quick_sort_cmp_loop, tab2);
+    mycheck(quick_sort_cmp);
+    mycheck(quick_sort_cmp_loop);
+    for (unsigned i = 2; i <= 50; i+=2)
+    {
+        small_threshold = i;
+        printf("<= %u ", i);
+        mycheck(quick_sort_cmp_adapt);
+        }
     return 0;
 }
